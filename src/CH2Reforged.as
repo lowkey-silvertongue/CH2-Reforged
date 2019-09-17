@@ -13,6 +13,7 @@ package
 	import heroclickerlib.CH2;
 	import models.Character;
 	import CH2Rlibs.debugCheats;
+	import models.Monster;
 	
 	// ----------------------------
 	
@@ -47,8 +48,19 @@ package
 					debugCheats.fastWorldLessMonsters(character);
 				}
 			}
+			
+			public function onKilledMonsterOverride(monster:Monster):void 
+			{
+				var character:Character = CH2.currentCharacter;
+				
+				if (monster.isBoss)
+				{
+					// check Character.as; continue from there
+					//character.persist(true, registerDynamicObject(), "traits");
+				}
+			}
 		
-		// -----------------
+		// -----------------s
 		
 		public function onStartup(game:IdleHeroMain):void
 		{
@@ -61,8 +73,13 @@ package
 
 		public function onCharacterCreated(character:Character):void
 		{
+			// add dependency to any character; ensure ppl don't crash their games after uninstalling
 			character.modDependencies[MOD_INFO["name"]] = true;
+			
+			// custom handlers go here
 			character.applyWorldTraitsHandler = this;
+			character.onKilledMonsterHandler = this;
+			
 			if (_isDebug)
 			{
 				debugCheats.cheatCharacterDamage(character);
