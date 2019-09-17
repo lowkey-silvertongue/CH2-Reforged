@@ -1,4 +1,4 @@
-# CH2-Reforged 0.1.B00001
+# CH2-Reforged 0.1.B00002
 "Clicker Heroes 2 - Reforged" source repository.
 
 CH2 - Reforged aims to improve the base game beyond it's current scope and functionality, covering
