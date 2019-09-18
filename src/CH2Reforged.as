@@ -31,6 +31,7 @@ package
 		};
 		
 		private var _isDebug:Boolean = true;
+		public var bonusPoints:Number;
 		
 		// -----------------
 		
@@ -39,6 +40,25 @@ package
 		// -----------------
 		
 		// --- OVERRIDES ---
+		
+		// default function is empty; override to collect current
+		// bonus points on character load and other mod validations
+		public function onCharacterLoadedOverride():void
+		{
+			var character:Character = CH2.currentCharacter;
+			// get bonuspoints from character in case
+			// it is a modded character
+			if (checkCharacterForMod(character))
+			{
+				bonusPoints = CH2.currentCharacter.getTrait("BonusSP");
+				// validate the amount of skillpoints the character has and
+				// update them in case they are missing (e.g. player used reset gild funtion)
+				if (!validateBonusPoints(character) && (character.gilds > 0))
+				{
+					character.totalStatPointsV2 = character.level - (calcGildWorldId() * 5) + 6 + bonusPoints;
+				}
+			}
+		}
 		
 		public function applyWorldTraitsOverride(worldNumber:Number):void
 		{
@@ -53,8 +73,27 @@ package
 		public function onWorldStartedOverride(worldNumber:Number):void 
 		{
 			var character:Character = CH2.currentCharacter;
-			character.onWorldStartedDefault(worldNumber); // default code has to be executed
 			
+			// revalidate total amount of skillpoints in case they were reset by the player
+			// because we cannot override resetGild() at the moment
+			if (!validateBonusPoints(character) && (character.gilds > 0))
+			{
+				character.totalStatPointsV2 = character.level - (calcGildWorldId() * 5) + 6 + bonusPoints;
+			}
+			var expectedNumGilds:int = Math.floor((character.currentWorldId - 1) / character.worldsPerGild);
+			// --- default code block ---
+			character.currentWorldId = worldNumber;
+			if (character.gilds < expectedNumGilds)
+			{
+				// save current bonus skillpoints before the reset
+				bonusPoints = character.getTrait("BonusSP");
+				character.addGild(character.currentWorldId); // gild function; does stuff and resets skillpoints
+				// add our bonus skillpoints back to the character
+				addBonusPoints(bonusPoints);
+				character.setTrait("BonusSP", bonusPoints);
+			}
+			character.timeOfLastRun = CH2.user.totalMsecsPlayed;
+			// --------------------------
 			// check if this is a rerun, set flag on character
 			if (character.runsCompletedPerWorld[character.currentWorldId])
 			{
@@ -79,16 +118,22 @@ package
 					// check Character.as; continue from there
 					//character.persist(true, registerDynamicObject(), "traits");
 				}
-				else if (monster.isBoss)
+				/**
+				 * for some reason monster.isBoss is false for 25/50/75 but true for monster.finalBoss
+				 * making them virtually identical and leaving no apparent option to distinguish them
+				 * code will remain until I find a way around this
+				 * 
+				if (monster.isBoss)
 				{
-					if (rollNumberToBoolean(990, 1000))
+					if (rollNumberToBoolean(0, 1000))
 					{
 						rewardStatpoint();
 					}
 				}
-				else if (monster.isFinalBoss)
+				*/
+				if (monster.isFinalBoss)
 				{
-					if (rollNumberToBoolean(950, 1000))
+					if (rollNumberToBoolean(925, 1000))
 					{
 						rewardStatpoint();
 					}
@@ -101,15 +146,15 @@ package
 		// --- FUNCTIONS ---
 		
 		// returns an integer between 0 and a given uper limit
-		public function rollNumber(ulimit:int):int
+		public function rollNumber(ulimit:Number):int
 		{
-			var roll:int = -1;
+			var roll:int = 0;
 			roll = Math.floor(Math.random() * ulimit +1);
 			return roll;
 		}
 		
 		// rolls between 0 and a given limit; returns true if roll is >= to split, else returns false
-		public function rollNumberToBoolean(split:int, limit:int):Boolean
+		public function rollNumberToBoolean(split:Number, limit:Number):Boolean
 		{
 			var broll:Boolean = false;
 			if (rollNumber(limit) >= split)
@@ -119,12 +164,53 @@ package
 			return broll;
 		}
 		
+		public function addBonusPoints(points:Number):void
+		{
+			var character:Character = CH2.currentCharacter
+			character.totalStatPointsV2 = character.totalStatPointsV2 + points;
+			character.hasNewSkillTreePointsAvailable = true;
+			CH2UI.instance.refreshLevelDisplays();
+		}
+		
+		public function getBonusPoints():Number
+		{
+			return CH2.currentCharacter.getTrait("BonusSP");
+		}
+		
 		// imcrements statpoints (skillpoints) by 1 and calls for a UI update
 		public function rewardStatpoint():void 
 		{
-			CH2.currentCharacter.totalStatPointsV2++;
-			CH2.currentCharacter.hasNewSkillTreePointsAvailable = true;
+			var character:Character = CH2.currentCharacter;
+			character.totalStatPointsV2++;
+			character.hasNewSkillTreePointsAvailable = true;
+			character.addTrait("BonusSP", 1);
 			CH2UI.instance.refreshLevelDisplays();
+		}
+		
+		public function checkCharacterForMod(character:Character):Boolean
+		{
+			var _isModded:Boolean = false;
+			if (character.modDependencies[MOD_INFO["name"]])
+			{
+				_isModded = true;
+			}
+			return _isModded;
+		}
+		
+		public function calcGildWorldId():Number
+		{
+			return Math.floor((CH2.currentCharacter.highestWorldCompleted + 1) / CH2.currentCharacter.worldsPerGild) * CH2.currentCharacter.worldsPerGild + 1;
+		}
+		
+		public function validateBonusPoints(character:Character):Boolean
+		{
+			var hasPoints:Boolean = false;
+			var _GildWorldId:Number = calcGildWorldId();
+			if (character.totalStatPointsV2 == (character.level - (_GildWorldId * 5 ) + 6 + bonusPoints))
+			{
+				hasPoints = true;
+			}
+			return hasPoints;
 		}
 		
 		// -----------------
@@ -147,6 +233,11 @@ package
 			character.applyWorldTraitsHandler = this;
 			character.onKilledMonsterHandler = this;
 			character.onWorldStartedHandler = this;
+			character.onCharacterLoadedHandler = this;
+			
+			// init trait which counts extra skillpoints
+			character.setTrait("BonusSP", 0);
+			bonusPoints = character.getTrait("BonusSP");
 			
 			if (_isDebug)
 			{

@@ -44,8 +44,8 @@ package CH2Rlibs
 			character.statBaseValues[CH2.STAT_CRIT_DAMAGE] = 99999;
 			character.statValueFunctions[CH2.STAT_MOVEMENT_SPEED] = Character.exponentialMultiplier(2);
 			character.statBaseValues[CH2.STAT_MOVEMENT_SPEED] = 3;
+			character.worldsPerGild = 1;
 		}
-		
 	}
 
 }
