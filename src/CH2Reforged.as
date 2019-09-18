@@ -72,7 +72,7 @@ package
 				// determine if monster is some kind of boss, if yes roll for a skillpoint reward
 				if (monster.isMiniBoss)
 				{
-					if (rollNumberToBoolean(995, 1000))
+					if (rollNumberToBoolean(998, 1000))
 					{
 						rewardStatpoint();
 					}
@@ -81,14 +81,14 @@ package
 				}
 				else if (monster.isBoss)
 				{
-					if (rollNumberToBoolean(980, 1000))
+					if (rollNumberToBoolean(990, 1000))
 					{
 						rewardStatpoint();
 					}
 				}
 				else if (monster.isFinalBoss)
 				{
-					if (rollNumberToBoolean(925, 1000))
+					if (rollNumberToBoolean(950, 1000))
 					{
 						rewardStatpoint();
 					}
