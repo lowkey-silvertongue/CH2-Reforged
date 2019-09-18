@@ -14,6 +14,7 @@ package
 	import models.Character;
 	import CH2Rlibs.debugCheats;
 	import models.Monster;
+	import ui.CH2UI;
 	
 	// ----------------------------
 	
@@ -39,28 +40,94 @@ package
 		
 		// --- OVERRIDES ---
 		
-			public function applyWorldTraitsOverride(worldNumber:Number):void
-			{
-				var character:Character = CH2.currentCharacter;
-				
-				if (_isDebug)
-				{
-					debugCheats.fastWorldLessMonsters(character);
-				}
-			}
+		public function applyWorldTraitsOverride(worldNumber:Number):void
+		{
+			var character:Character = CH2.currentCharacter;
 			
-			public function onKilledMonsterOverride(monster:Monster):void 
+			if (_isDebug)
 			{
-				var character:Character = CH2.currentCharacter;
-				
-				if (monster.isBoss)
+				debugCheats.fastWorldLessMonsters(character);
+			}
+		}
+		
+		public function onWorldStartedOverride(worldNumber:Number):void 
+		{
+			var character:Character = CH2.currentCharacter;
+			character.onWorldStartedDefault(worldNumber); // default code has to be executed
+			
+			// check if this is a rerun, set flag on character
+			if (character.runsCompletedPerWorld[character.currentWorldId])
+			{
+				character.setTrait("Rerun", 1);
+			}
+		}
+			
+		public function onKilledMonsterOverride(monster:Monster):void 
+		{
+			var character:Character = CH2.currentCharacter;
+			character.onKilledMonsterDefault(monster);	// make sure to execute default game code
+			
+			if (!character.getTrait("Rerun") == 1) // if this is no rerun, boss kills may award skillpoints
+			{
+				// determine if monster is some kind of boss, if yes roll for a skillpoint reward
+				if (monster.isMiniBoss)
 				{
+					if (rollNumberToBoolean(995, 1000))
+					{
+						rewardStatpoint();
+					}
 					// check Character.as; continue from there
 					//character.persist(true, registerDynamicObject(), "traits");
 				}
+				else if (monster.isBoss)
+				{
+					if (rollNumberToBoolean(980, 1000))
+					{
+						rewardStatpoint();
+					}
+				}
+				else if (monster.isFinalBoss)
+				{
+					if (rollNumberToBoolean(925, 1000))
+					{
+						rewardStatpoint();
+					}
+				}
 			}
+		}
 		
-		// -----------------s
+		// -----------------
+		
+		// --- FUNCTIONS ---
+		
+		// returns an integer between 0 and a given uper limit
+		public function rollNumber(ulimit:int):int
+		{
+			var roll:int = -1;
+			roll = Math.floor(Math.random() * ulimit +1);
+			return roll;
+		}
+		
+		// rolls between 0 and a given limit; returns true if roll is >= to split, else returns false
+		public function rollNumberToBoolean(split:int, limit:int):Boolean
+		{
+			var broll:Boolean = false;
+			if (rollNumber(limit) >= split)
+			{
+				broll = true;
+			}
+			return broll;
+		}
+		
+		// imcrements statpoints (skillpoints) by 1 and calls for a UI update
+		public function rewardStatpoint():void 
+		{
+			CH2.currentCharacter.totalStatPointsV2++;
+			CH2.currentCharacter.hasNewSkillTreePointsAvailable = true;
+			CH2UI.instance.refreshLevelDisplays();
+		}
+		
+		// -----------------
 		
 		public function onStartup(game:IdleHeroMain):void
 		{
@@ -79,6 +146,7 @@ package
 			// custom handlers go here
 			character.applyWorldTraitsHandler = this;
 			character.onKilledMonsterHandler = this;
+			character.onWorldStartedHandler = this;
 			
 			if (_isDebug)
 			{
