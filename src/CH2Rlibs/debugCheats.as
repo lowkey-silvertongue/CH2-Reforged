@@ -26,12 +26,16 @@ package CH2Rlibs
 		
 		// -----------------
 		
+		
+		// less monsters - only bosses each zone; drastically reduced monster hp
 		public static function fastWorldLessMonsters(character:Character):void
 		{
 			character.monstersPerZone = 1;
 			character.monsterHealthMultiplier = 0.000001;
 		}
 		
+		
+		// significantly buff base damage, set crit chance to 100% and increase movement speed and crit damage
 		public static function cheatCharacterDamage(character:Character):void 
 		{
 			character.statValueFunctions[CH2.STAT_DAMAGE] = Character.exponentialMultiplier(25);
@@ -40,8 +44,8 @@ package CH2Rlibs
 			character.statBaseValues[CH2.STAT_CRIT_DAMAGE] = 99999;
 			character.statValueFunctions[CH2.STAT_MOVEMENT_SPEED] = Character.exponentialMultiplier(2);
 			character.statBaseValues[CH2.STAT_MOVEMENT_SPEED] = 3;
+			character.worldsPerGild = 1;
 		}
-		
 	}
 
 }
