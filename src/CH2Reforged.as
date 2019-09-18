@@ -30,7 +30,7 @@ package
 			"author": "lowkey-silvertongue"
 		};
 		
-		private var _isDebug:Boolean = true;
+		private var _isDebug:Boolean = false;
 		public var bonusPoints:Number;
 		
 		// -----------------
