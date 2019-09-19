@@ -8,14 +8,13 @@ package
 	
 	 
 	// --- PACKAGE/CLASS IMPORT ---
-	 
 	import flash.display.Sprite;
 	import heroclickerlib.CH2;
 	import models.Character;
-	import CH2Rlibs.debugCheats;
 	import models.Monster;
 	import ui.CH2UI;
-	
+	import Overrides.worldStartOverride;
+	import CH2Rlibs.debugCheats;
 	// ----------------------------
 	
 	public class CH2Reforged extends Sprite

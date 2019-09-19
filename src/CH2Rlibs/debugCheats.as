@@ -6,10 +6,8 @@ package CH2Rlibs
 	 */
 	
 	// --- PACKAGE/CLASS IMPORT ---
-	 
 	import heroclickerlib.CH2;
 	import models.Character;
-	
 	// ----------------------------
 	
 	public class debugCheats 

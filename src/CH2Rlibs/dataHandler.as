@@ -1,15 +1,14 @@
 package CH2Rlibs 
 {
-	import models.Character;
-	
 	/**
 	 * v0.1
 	 * @author lowkey-silvertongue
 	 */
 	
-	 // --- PACKAGE/CLASS IMPORT ---
-	 
-	 // ----------------------------
+	// --- PACKAGE/CLASS IMPORT ---
+	import heroclickerlib.CH2;
+	import models.Character;
+	// ----------------------------
 	 
 	public class dataHandler 
 	{
@@ -25,26 +24,43 @@ package CH2Rlibs
 		
 		// -----------------
 		
+		// --- FUNCTIONS ---
 		
-		// add any custom trait with given name and init with 0
-		public static function addCustomTrait(character:Character, trait:String):void
+		public static function getPropertyNames(object:Object):Array
 		{
-			character.addTrait(trait, 0);
+			var outcome:Array = [];
+			var i:uint = 0;
+			for (var key:String in object)
+			{
+				outcome[i] = key;
+				i++;
+			}
+			return outcome;
 		}
 		
-		// set any custom trait with given name to given value
-		public static function setCustomTrait(character:Character,trait:String, value:Number):void
+		public static function rollInteger(limit:int=1):Number 
 		{
-			character.setTrait(trait, value);
+			return Math.floor(Math.random() * limit +1);
 		}
 		
-		// get any custom trait with given name and return value
-		public static function getCustomTrait(character:Character, trait:String):Number
+		public static function rollSimpleBoolean():Boolean
 		{
-			var value:Number = character.getTrait(trait);
-			return value;
+			return (rollInteger() > 0);
 		}
 		
+		public static function rollComplexBoolean(chancePercent:Number):Boolean
+		{
+			var outcome:Boolean = false;
+			if (chancePercent > 100 || chancePercent < 0)
+			{
+				return outcome;
+			}
+			if (rollInteger(1000) <= (chancePercent * 10))
+			{
+				outcome = true;
+			}
+			return outcome;
+		}
 	}
 
 }
